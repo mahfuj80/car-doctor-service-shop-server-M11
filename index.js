@@ -28,14 +28,13 @@ async function run() {
     const serviceCollection = client.db('carDoctor').collection('services');
     const bookingCollection = client.db('carDoctor').collection('bookings');
 
-    // get all services
+    // services
     app.get('/services', async (req, res) => {
       const cursor = serviceCollection.find();
       const result = await cursor.toArray();
       res.send(result);
     });
 
-    // get single service
     app.get('/services/:id', async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
@@ -62,6 +61,17 @@ async function run() {
     app.post('/bookings', async (req, res) => {
       const booking = req.body;
       const result = await bookingCollection.insertOne(booking);
+      res.send(result);
+    });
+
+    app.put('/bookings/:id', async (req, res) => {
+      const updatedBooking = req?.body;
+    });
+
+    app.delete('/bookings/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await bookingCollection.deleteOne(query);
       res.send(result);
     });
 
