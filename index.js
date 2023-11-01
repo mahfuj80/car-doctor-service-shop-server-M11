@@ -64,16 +64,25 @@ async function run() {
     // auth related api
     app.post('/jwt', logger, async (req, res) => {
       const user = req.body;
-      console.log(user);
+      console.log('user for token', user);
+      // node
+      // require('crypto').randomBytes(64).toString('hex')
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
         expiresIn: '1h',
       });
       res
         .cookie('token', token, {
           httpOnly: true,
-          secure: false,
+          secure: true,
+          sameSite: 'none',
         })
         .send({ success: true });
+    });
+
+    app.post('/logout', async (req, res) => {
+      const user = req.body;
+      console.log('logging out', user);
+      res.clearCookie('token', { maxAge: 0 }).send({ success: true });
     });
 
     // services related api
@@ -98,7 +107,7 @@ async function run() {
 
     app.get('/bookings', logger, verifyToken, async (req, res) => {
       console.log(req.query.email);
-      // console.log('tok tok token', req.cookies.token);
+      console.log('tok tok token', req.cookies);
       console.log('user in the valid token', req.user);
       if (req.query.email !== req.user.email) {
         return res.status(403).send({ message: 'forbidden access' });
