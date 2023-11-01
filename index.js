@@ -10,7 +10,11 @@ require('dotenv').config();
 // middleware
 app.use(
   cors({
-    origin: ['http://localhost:5173'],
+    origin: [
+      // 'http://localhost:5173'
+      'https://cars-doctor-m11.web.app',
+      'https://cars-doctor-m11.firebaseapp.com',
+    ],
     credentials: true,
   })
 );
