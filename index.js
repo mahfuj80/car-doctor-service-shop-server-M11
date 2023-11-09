@@ -10,11 +10,7 @@ require('dotenv').config();
 // middleware
 app.use(
   cors({
-    origin: [
-      // 'http://localhost:5173'
-      'https://cars-doctor-m11.web.app',
-      'https://cars-doctor-m11.firebaseapp.com',
-    ],
+    origin: ['http://localhost:5173'],
     credentials: true,
   })
 );
@@ -33,8 +29,13 @@ const client = new MongoClient(uri, {
 });
 
 // middleware own created
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).send('Internal Server Error');
+});
+
 const logger = async (req, res, next) => {
-  console.log('called', req.host, req.originalUrl);
+  // console.log('called', req.host, req.originalUrl);
   next();
 };
 
@@ -60,7 +61,7 @@ const verifyToken = async (req, res, next) => {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
     const serviceCollection = client.db('carDoctor').collection('services');
     const bookingCollection = client.db('carDoctor').collection('bookings');
@@ -77,8 +78,8 @@ async function run() {
       res
         .cookie('token', token, {
           httpOnly: true,
-          secure: true,
           sameSite: 'none',
+          secure: true,
         })
         .send({ success: true });
     });
@@ -91,7 +92,18 @@ async function run() {
 
     // services related api
     app.get('/services', logger, async (req, res) => {
-      const cursor = serviceCollection.find();
+      const filter = req.query;
+      console.log(filter);
+      const query = {
+        //  price: { $gte: 150 }
+        title: { $regex: filter.search, $options: 'i' },
+      };
+      const options = {
+        sort: {
+          price: filter.sort === 'asc' ? 1 : -1,
+        },
+      };
+      const cursor = serviceCollection.find(query, options);
       const result = await cursor.toArray();
       res.send(result);
     });
